@@ -1,0 +1,14 @@
+# depslib dependency file v1.0
+1569850162 source:d:\_pw\simplealarm\source\simplealarm_res.rc
+	<windows.h>
+	"SimpleAlarm_res.h"
+
+1570041869 d:\_pw\simplealarm\source\simplealarm_res.h
+
+1570058735 source:d:\_pw\simplealarm\source\simplealarm.c
+	<stdio.h>
+	<time.h>
+	<windows.h>
+	<Mmsystem.h>
+	"SimpleAlarm_res.h"
+

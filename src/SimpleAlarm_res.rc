@@ -1,0 +1,24 @@
+#include <windows.h>
+#include "SimpleAlarm_res.h"
+
+1 VERSIONINFO
+FILEVERSION V_Major,V_Minor,V_Release,V_Build
+PRODUCTVERSION V_Major,V_Minor,V_Release,V_Build
+//FILETYPE VFT_APP
+{
+  BLOCK "StringFileInfo"{
+    BLOCK "041204E4"{
+
+      VALUE "FileDescription",   F_Description
+
+      VALUE "ProductName",       P_Name
+      VALUE "ProductVersion",    V_String
+      VALUE "OriginalFilename",  P_FileName
+
+      VALUE "LegalCopyright",    P_Copyright
+    }
+  }
+  BLOCK "VarFileInfo"{
+    VALUE "Translation", 0x0412, 1252
+  }
+}
