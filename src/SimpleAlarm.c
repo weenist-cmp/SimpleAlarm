@@ -2,6 +2,7 @@
 SimpleAlarm
 20190929...Start
 20191003...화면보호기 상태일때 계속 연주, 파일이 없을때 기본 경고음 연주안함
+20191007...모니터 켜고 음악 무조건 반복 연주하고 키를 받으면 연주 중지 (모니터에 내장스피커일때는 꺼져있다면 소리가 안나는 경우가 있어서 변경)
 ==============================================================================*/
 #include <stdio.h>
 #include <time.h>
@@ -10,7 +11,7 @@ SimpleAlarm
 #include "SimpleAlarm_res.h"
 //==============================================================================
 const int def_Alarm_Time = 600; const int def_Alarm_Modify = 300; const int def_Alarm_Min = 300; const int def_Alarm_Max = 36000; const char *def_Alarm_Sound = "Simple_drum2.wav";
-char Alarm_Sound[999]; HWND hwnd = NULL, hti; HINSTANCE hInst; int WindowWidth=200,WindowHeight=58, Alarm_Time, Alarm_Modify, Alarm_Min, Alarm_Max, pwav;
+char Alarm_Sound[999]; HWND hwnd = NULL, hti; HINSTANCE hInst; int WindowWidth=200,WindowHeight=58, Alarm_Time, Alarm_Modify, Alarm_Min, Alarm_Max;//, pwav;
 DWORD WindowStyle = WS_CAPTION | WS_POPUPWINDOW;
 time_t Time_CheckStart;
 //==============================================================================
@@ -42,16 +43,18 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       break;
     case WM_DESTROY:
       KillTimer(hwnd, 0); PostQuitMessage (0);
-	  break;
+      break;
     case WM_SYSCOMMAND:
       if(wParam==SC_RESTORE) StopWait();
       if(wParam==SC_CLOSE){ KillTimer(hwnd, 0); PostQuitMessage (0); }
       break;
     case WM_KEYDOWN:
+      //pwav=0;
+      PlaySound(NULL, 0, 0); // 191007 키를 받으면 연주 중지
       if(wParam==VK_ESCAPE) PostQuitMessage(0);
-      if(wParam==VK_UP){ Alarm_Time+=Alarm_Modify; ShowAlarm(); }
-      if(wParam==VK_DOWN){ Alarm_Time-=Alarm_Modify; ShowAlarm(); }
-      if(wParam==VK_SPACE || wParam==VK_RETURN) StartWait();
+      else if(wParam==VK_UP){ Alarm_Time+=Alarm_Modify; ShowAlarm(); }
+      else if(wParam==VK_DOWN){ Alarm_Time-=Alarm_Modify; ShowAlarm(); }
+      else if(wParam==VK_SPACE || wParam==VK_RETURN) StartWait();
       break;
     default:
       return DefWindowProc (hwnd, message, wParam, lParam);
@@ -74,7 +77,7 @@ void PreMain(void)
   if(ac>5){ wcstombs(buf,av[5],999); strcpy(Alarm_Sound,buf); }else strcpy(Alarm_Sound,def_Alarm_Sound);
   LocalFree(av);
 
-  ShowWindow(hwnd,SW_SHOW); UpdateWindow(hwnd); Time_CheckStart=0; pwav=0; SetTimer(hwnd,0,1000,TimerProc); ShowAlarm();
+  ShowWindow(hwnd,SW_SHOW); UpdateWindow(hwnd); Time_CheckStart=0; SetTimer(hwnd,0,1000,TimerProc); ShowAlarm();// pwav=0;
 }
 //==============================================================================
 void EndMain(void)
@@ -99,25 +102,26 @@ LONG WINAPI DefScreenSaverProc(HWND,UINT,WPARAM,LPARAM);
 void CALLBACK TimerProc( HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime )
 {
   DWORD dws; time_t ctm;
-  BOOL ssa;
+//  BOOL ssa;
 
-//191003
-// 화면보호기 실행
+//191003 화면보호기 실행
 //  SendMessage(HWND_BROADCAST,WM_SYSCOMMAND, SC_SCREENSAVE, 0L);
 
-// 화면보호기 실행중지 방법을 찾기 어려워서 현재 실행중인지 체크
-//191003
-  ssa=FALSE;
-  SystemParametersInfo(SPI_GETSCREENSAVERRUNNING,0,&ssa,0);
-  if(ssa==FALSE && pwav==1){ PlaySound(NULL, 0, 0); pwav=0; } // 화면보호기 빠져 나왔을때 소리알림 중지 //191003
+//191003 화면보호기 현재 실행중인지 체크
+//  ssa=FALSE; SystemParametersInfo(SPI_GETSCREENSAVERRUNNING,0,&ssa,0); // ssa==TRUE 일때 화면보호기 실행중
+//  if(ssa==FALSE && pwav==1){ PlaySound(NULL, 0, 0); SetForegroundWindow(hwnd); pwav=0; } // 화면보호기 빠져 나왔을때 소리알림 중지 //191003
 
   if(Time_CheckStart==0){ ShowAlarm(); return; }
   ctm = time(NULL); if(ctm<=Time_CheckStart) return;
   dws = ctm - Time_CheckStart;
   if(dws >= (DWORD)Alarm_Time){
-    Time_CheckStart=0; ShowWindow(hwnd,SW_RESTORE); ShowAlarm(); UpdateWindow(hwnd);
-    PlaySound((LPCTSTR)Alarm_Sound, NULL, (ssa==FALSE ? 0 : SND_LOOP) | SND_NODEFAULT | SND_FILENAME); //191003
-    if(ssa==TRUE) pwav=1; // 화면보호기 실행중일때 1 //191003
+    SendMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER, -1); // 191007 모니터 켬
+    Time_CheckStart=0; ShowWindow(hwnd,SW_RESTORE); ShowAlarm(); UpdateWindow(hwnd); SetForegroundWindow(hwnd);
+//    ssa=FALSE; SystemParametersInfo(SPI_GETSCREENSAVERRUNNING,0,&ssa,0);
+//    PlaySound((LPCTSTR)Alarm_Sound, NULL, (ssa==FALSE ? 0 : SND_LOOP | SND_ASYNC) | SND_NODEFAULT | SND_FILENAME); //191003
+    PlaySound((LPCTSTR)Alarm_Sound, NULL, SND_LOOP | SND_ASYNC | SND_NODEFAULT | SND_FILENAME); //191003 //191007 무조건 반복 연주
+//    if(ssa==TRUE)
+//    pwav=1; // 화면보호기 실행중일때 1 //191003 // 191007 연주중일때로 변경
   }
 }
 //==============================================================================

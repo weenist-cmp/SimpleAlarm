@@ -2,7 +2,7 @@
 #define SimpleAlarm_res_H
 
 #define V_Major   0
-#define V_Minor   3
+#define V_Minor   4
 #define V_Release 1
 #define V_Build   1
 

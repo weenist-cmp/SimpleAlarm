@@ -35,6 +35,9 @@ Play WavSoundFile (once: screensaver is NOT active, repeat: Active, Nosound: Fil
 When App RESTORE  
 Stop Wait (Beep)  
 
+- Change  
+0.4:  Monitor Turn On, Always Repeat Wav, Stop Play when Key  
+
 - Etc.  
 http://weenist.egloos.com/6532989  
 2019.09.30.Mon.  
